@@ -19,10 +19,9 @@ texture = imread([rat_dir,'texture.jpg']);
 height = size(texture,1); % num rows = 480
 width = size(texture,2); % num cols = 640
 
-
-
 %% obtain gray codes
 G = zeros(height,width,6);
+imshow(texture);
 avg = .5 * rgb2gray(texture);
 avg = imadjust(avg); % change contrasting method to get clearer lines?
 for i=1:6
@@ -32,11 +31,6 @@ for i=1:6
     bitPlane(gray >= avg) = 1;
     G(:,:,i) = bitPlane; 
 end
-
-
-
-
-
 
 section = gray2dec(G);
 % for i=1:64
@@ -48,33 +42,24 @@ section = gray2dec(G);
 % end
 % break;
 
-
 %% obtain phases by arctan(I4-I2/I3-I1)
+% formula conflicts with sources...keep 0-2pi or -pi-pi????
 intensity = atan2(double(scans{8}) - double(scans{10}), ...
                   double(scans{7}) - double(scans{9}));
-mask = find(intensity < 0);
+% mask = find(intensity < 0);
 % intensity(mask) = intensity(mask) + 2*pi;              
 phase = intensity;
 
+% idx = 1:10:684;
+% pts = phase(idx,10);
 
-idx = 1:10:684;
-pts = phase(idx,10);
-
-scatter(idx, (pts));
+% scatter(idx, (pts));
 % axis([0 800 -2 2]);
 
 % obtain row correspondences for each pixel
-rows = 2*pi * (section-1) + phase; 
+rows = 2*pi * (section) + phase; 
 
-
-rows = rows * period / (2*pi);
-
-
-
-
-
-break;
-
+rows = rows * period / (2*pi); % is period correct?
 
 
 %% triangulate
