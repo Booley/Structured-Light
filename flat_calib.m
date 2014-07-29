@@ -1,3 +1,4 @@
+% have double checked all provided values.
 fLength_cam = 1810.1474416363599;
 r1_cam = [0.73806722247669554,-0.028323229924884147,-0.67413245712705339];
 r2_cam = [0.1132176273016446,-0.97975380410093449,0.16511890327256307];
@@ -17,10 +18,10 @@ t_proj = [95.475385712589187,-2.6289359800923897,105.65348155760124];
 
 cx_proj = 0.5108035872031238;
 cy_proj = 1.1065735011470048;
-fy_proj = 3.2023164118108385;
+fy_proj = 3.2023164118108385; % appears just as f
 sx_proj = 0.56619562620870267;
 
-
+% everything below is derived
 fx_cam = fLength_cam * sx_cam;
 fy_cam = fLength_cam;
 distortion_cam = [kappa1_cam,0,0,0,0];
@@ -36,6 +37,7 @@ kc = distortion_cam;
 r_cam = [r1_cam', r2_cam', r3_cam'];
 r_proj = [r1_proj', r2_proj', r3_proj'];
 
+% should double check these. Conflicting sources
 R = r_cam * r_proj'; % brings right to left
 T = t_cam' - R * t_proj';
 
