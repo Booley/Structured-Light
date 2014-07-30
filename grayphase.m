@@ -5,7 +5,7 @@ addpath('./utilities'); % for converting gray codes
 rat_dir = './Patterns/';
 period = 684.0/64; % determined from phase-shifted images...
 minContrast = .2;
-downSample = 1;
+downSample = 20;
 
 
 %% read in images
@@ -60,17 +60,38 @@ phase = intensity;
 rows = 2*pi * (section-1) + phase;
 
 rows = rows * period / (2*pi); % is period correct?
-break;
+
 % suspicious: why do I never get 684 as the max row value?
+
 %% triangulate
-[x,y] = ind2sub(size(texture),[1:height*width]);
-points = [y',x']'; % x,y ranges up to 640,480 (cols,rows)
-numPoints = size(points,2);
+%construct camera rays
+numPoints = height*width;
+[x,y] = ind2sub(size(texture),[1:numPoints]);
+points = [y;x]; % x,y ranges up to (cols,rows)
 rays = pixel2ray(points,fc,cc,kc,alpha); %now in camera coordinates
 
+%construct rays for plane construction
+pad = ones(1,numPoints);
+rows = rows(:)';
+p1 = [2*pad;rows];
+p2 = [10*pad;rows];
 
-planes = getPlanes(rows,fy_proj,[0;0;0],R,T);
-cloud = intersectLineWithPlane(zeros(size(rays)), rays, planes)';
+% WARNING: DON'T FORGET TO TRANSFORM
+proj_rays1 = pixel2ray(p1,fcp,ccp,kcp,alphap);
+proj_rays2 = pixel2ray(p2,fcp,ccp,kcp,alphap);
+
+%now construct the planes
+planes = cross(proj_rays1, proj_rays2);
+planes = R' * planes;
+points = [points;fLength_cam*pad];
+planes = [planes;dot(planes,points)];
+for i=1:3
+    planes(i,:) = planes(i,:) - T(i);
+end
+
+
+cloud = intersectLineWithPlane(points, rays, planes)';
+
 
 
 %% get color, display
