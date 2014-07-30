@@ -3,7 +3,7 @@ t = cputime;
 flat_calib; % load calibration data
 addpath('./utilities'); % for converting gray codes
 rat_dir = './Patterns/';
-period = 684.0/64; % determined from phase-shifted images...but 480 rows / 64 sections...
+period = 684.0/64; % determined from phase-shifted images...
 minContrast = .2;
 downSample = 1;
 
@@ -21,7 +21,6 @@ width = size(texture,2); % num cols = 640
 
 %% obtain gray codes
 G = zeros(height,width,6);
-imshow(texture);
 avg = .5 * rgb2gray(texture);
 avg = imadjust(avg); % change contrasting method to get clearer lines?
 for i=1:6
@@ -46,8 +45,9 @@ section = gray2dec(G);
 % formula conflicts with sources...keep 0-2pi or -pi-pi????
 intensity = atan2(double(scans{8}) - double(scans{10}), ...
                   double(scans{7}) - double(scans{9}));
-% mask = find(intensity < 0);
-% intensity(mask) = intensity(mask) + 2*pi;              
+mask = find(intensity < 0);
+
+intensity(mask) = intensity(mask) + 2*pi;              
 phase = intensity;
 
 % idx = 1:10:684;
@@ -57,11 +57,11 @@ phase = intensity;
 % axis([0 800 -2 2]);
 
 % obtain row correspondences for each pixel
-rows = 2*pi * (section) + phase; 
+rows = 2*pi * (section-1) + phase;
 
 rows = rows * period / (2*pi); % is period correct?
-
-
+break;
+% suspicious: why do I never get 684 as the max row value?
 %% triangulate
 [x,y] = ind2sub(size(texture),[1:height*width]);
 points = [y',x']'; % x,y ranges up to 640,480 (cols,rows)
