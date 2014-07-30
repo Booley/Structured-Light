@@ -37,9 +37,9 @@ kc = distortion_cam;
 r_cam = [r1_cam', r2_cam', r3_cam'];
 r_proj = [r1_proj', r2_proj', r3_proj'];
 
-% should double check these. Conflicting sources
-R = r_cam * r_proj'; % brings right to left
-T = t_cam' - R * t_proj';
+% should double check these. Conflicting sources. Currently matches LOWL
+R = r_proj * r_cam'; % brings right to left
+T = t_proj' - R * t_cam';
 
 
 
