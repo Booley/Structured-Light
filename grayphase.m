@@ -2,7 +2,7 @@
 t = cputime;
 flat_calib; % load calibration data
 addpath('./utilities'); % for converting gray codes
-rat_dir = './Patterns/';
+rat_dir = './hump/';
 period = 684.0/64; % determined from phase-shifted images...
 minContrast = .2;
 downSample = 20;
@@ -51,51 +51,42 @@ phase = intensity;
 
 idx = 1:200:height*width;
 pts = phase(idx);
-scatter(pts, sin(pts));
-pause;
+% scatter(pts, sin(pts));
+% pause;
 
 % obtain row correspondences for each pixel
 rows = 2*pi * (section-1) + phase;
 idx = 1:10:height*width;
 pts = rows(idx);
-scatter(pts, sin(pts))
-
-break;
+% scatter(pts, sin(pts))
+% 
+% break;
 
 rows = rows * period / (2*pi); % is period correct?
 
 % suspicious: why do I never get 684 as the max row value?
 
 %% triangulate
-%construct camera rays
+rows = rows(:)';
 numPoints = height*width;
 [x,y] = ind2sub(size(texture),[1:numPoints]);
-points = [y;x]; % x,y ranges up to (cols,rows)
-rays = pixel2ray(points,fc,cc,kc,alpha); %now in camera coordinates
-
-%construct rays for plane construction
+points = [y;x]; % as in (x,y)'
 pad = ones(1,numPoints);
-rows = rows(:)';
-p1 = [2*pad;rows];
-p2 = [10*pad;rows];
 
-% WARNING: DON'T FORGET TO TRANSFORM
-proj_rays1 = pixel2ray(p1,fcp,ccp,kcp,alphap);
-proj_rays2 = pixel2ray(p2,fcp,ccp,kcp,alphap);
+cam_rays = [points; fLength_cam*pad]; %construct camera rays
 
-%now construct the planes
-planes = cross(proj_rays1, proj_rays2);
-planes = R' * planes;
-points = [points;fLength_cam*pad];
-planes = [planes;dot(planes,points)];
+p1 = [(2-T(1))*pad; rows-T(2); (fLength_proj-T(3))*pad]; %use any x coordinate
+p2 = [(12-T(1))*pad; rows-T(2); (fLength_proj-T(3))*pad]; % PE: +T?
+planes = R*cross(p1,p2); %origin is T
+
+numerator = dot(planes, [T(1)*pad;T(2)*pad;T(3)*pad]);
+denominator = dot(planes, cam_rays);
+lambda = numerator ./ denominator;
+
+cloud = zeros(numPoints,3);
 for i=1:3
-    planes(i,:) = planes(i,:) - T(i);
+    cloud(:,i) = lambda .* cam_rays(i,:);
 end
-
-
-cloud = intersectLineWithPlane(points, rays, planes)';
-
-
 
 %% get color, display
 Rc        = im2double(texture(:,:,1));
