@@ -11,7 +11,7 @@ downSample = 20;
 %% read in images
 scans = cell(1,10);
 for i=0:9
-    temp = imread([rat_dir,'scan-',int2str(i),'.jpg']);
+    temp = imread([rat_dir,int2str(i),'.jpg']);
     scans{i+1} = rgb2gray(temp);
 end
 
@@ -32,7 +32,7 @@ for i=1:6
 end
 
 section = gray2dec(G);
-% for i=1:64
+% for i=1:66
 %     disp(i);
 %     colorSection = zeros(height, width);
 %     colorSection(section == i) = 255;
@@ -46,18 +46,21 @@ section = gray2dec(G);
 intensity = atan2(double(scans{8}) - double(scans{10}), ...
                   double(scans{7}) - double(scans{9}));
 mask = find(intensity < 0);
-
 intensity(mask) = intensity(mask) + 2*pi;              
 phase = intensity;
 
-% idx = 1:10:684;
-% pts = phase(idx,10);
-
-% scatter(idx, (pts));
-% axis([0 800 -2 2]);
+idx = 1:200:height*width;
+pts = phase(idx);
+scatter(pts, sin(pts));
+pause;
 
 % obtain row correspondences for each pixel
 rows = 2*pi * (section-1) + phase;
+idx = 1:10:height*width;
+pts = rows(idx);
+scatter(pts, sin(pts))
+
+break;
 
 rows = rows * period / (2*pi); % is period correct?
 
