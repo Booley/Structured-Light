@@ -5,8 +5,8 @@ addpath('./utilities'); % for converting gray codes
 rat_dir = './hump/';
 period = 684.0/64; % determined from phase-shifted images...
 minContrast = .2;
-downSample = 20;
-
+downSample = 1;
+sample = downSample;
 
 %% read in images
 scans = cell(1,10);
@@ -67,27 +67,29 @@ rows = rows * period / (2*pi); % is period correct?
 % suspicious: why do I never get 684 as the max row value?
 
 %% triangulate
-rows = rows(:)';
 numPoints = height*width;
 [x,y] = ind2sub(size(texture),[1:numPoints]);
 points = [y;x]; % as in (x,y)'
 pad = ones(1,numPoints);
+cloud = zeros(3,numPoints);
+counter = 1;
 
-cam_rays = [points; fLength_cam*pad]; %construct camera rays
-
-p1 = [(2-T(1))*pad; rows-T(2); (fLength_proj-T(3))*pad]; %use any x coordinate
-p2 = [(12-T(1))*pad; rows-T(2); (fLength_proj-T(3))*pad]; % PE: +T?
-planes = R*cross(p1,p2); %origin is T
-
-numerator = dot(planes, [T(1)*pad;T(2)*pad;T(3)*pad]);
-denominator = dot(planes, cam_rays);
-lambda = numerator ./ denominator;
-
-cloud = zeros(numPoints,3);
-for i=1:3
-    cloud(:,i) = lambda .* cam_rays(i,:);
+for i=1:sample:height
+    for j=1:sample:width
+        cam_ray = [i;j;fLength_cam];
+        
+        p1 = [2;rows(i,j);fLength_proj];
+        p2 = [12;rows(i,j);fLength_proj];
+        p1 = R*(p1-T);
+        p2 = R*(p2-T);
+        plane = cross(p1,p2);
+        
+        lambda = dot(plane,T) / dot(plane,cam_ray);
+        cloud(:,counter) = lambda .* cam_ray;
+        counter = counter+1;
+    end
 end
-
+cloud = cloud';
 %% get color, display
 Rc        = im2double(texture(:,:,1));
 Gc        = im2double(texture(:,:,2));
